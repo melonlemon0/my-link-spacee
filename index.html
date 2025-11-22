@@ -104,6 +104,30 @@
       font-size: 22px;
     }
 
+    /* Floating + button */
+    .fab-btn {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 52px;
+      height: 52px;
+      border-radius: 999px;
+      border: none;
+      background: #4f46e5;
+      color: #f9fafb;
+      font-size: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(15,23,42,0.35);
+      z-index: 50;
+    }
+
+    .fab-btn:hover {
+      background: #4338ca;
+    }
+
     /* Main area */
     .app-main {
       flex: 1;
@@ -129,7 +153,7 @@
     }
 
     .login-emoji {
-      font-size: 64px; /* big coffee emoji */
+      font-size: 64px;
       margin-bottom: 10px;
     }
 
@@ -191,6 +215,7 @@
       gap: 14px;
     }
 
+    /* Editor panel (hidden in view mode) */
     .top-row {
       display: flex;
       flex-direction: column;
@@ -239,7 +264,6 @@
       margin-left: 6px;
     }
 
-    /* URL / title inputs */
     #url-input,
     #title-input {
       padding: 9px 11px;
@@ -297,7 +321,7 @@
     .links-list {
       margin-top: 4px;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 per row */
       gap: 10px;
       overflow-y: auto;
       padding: 4px;
@@ -315,13 +339,13 @@
     .link-card {
       display: flex;
       flex-direction: column;
-      padding: 8px 9px;
+      padding: 10px 10px;
       border-radius: 16px;
       background: #ffffff;
       border: 1px solid #e5e7eb;
       box-shadow: 0 4px 10px rgba(15,23,42,0.06);
       gap: 6px;
-      min-height: 78px;
+      min-height: 80px;
       cursor: grab;
     }
 
@@ -332,7 +356,7 @@
     .link-main {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex: 1;
       min-width: 0;
       text-decoration: none;
@@ -340,8 +364,8 @@
     }
 
     .preview-box {
-      height: 26px;
-      width: 26px;
+      height: 30px;
+      width: 30px;
       border-radius: 999px;
       background: rgba(255,255,255,0.7);
       display: flex;
@@ -352,8 +376,8 @@
     }
 
     .preview-box img {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
     }
 
     .meta {
@@ -362,33 +386,24 @@
 
     .meta-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       gap: 4px;
     }
 
     .meta .title {
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 15px;          /* bigger title */
+      font-weight: 700;         /* stronger */
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
       color: #111827;
     }
 
-    .meta .url {
-      font-size: 11px;
-      color: #4b5563;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-
     .actions {
       display: flex;
       gap: 4px;
       justify-content: flex-end;
-      margin-top: 2px;
+      margin-top: 4px;
     }
 
     .small-btn {
@@ -423,9 +438,22 @@
       padding: 18px 0;
     }
 
-    @media (max-width: 900px) {
+    /* Responsive columns */
+    @media (max-width: 1024px) {
+      .links-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
       .links-list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .links-list {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
       }
     }
 
@@ -442,15 +470,6 @@
       .list-panel {
         width: 100%;
         max-width: none;
-      }
-      .links-list {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 480px) {
-      .links-list {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
       }
     }
   </style>
@@ -489,8 +508,8 @@
 
       <!-- APP VIEW -->
       <section id="app-section">
-        <!-- Top row: URL + Title inputs -->
-        <div class="top-row">
+        <!-- Editor panel (hidden in view mode, shown in manage mode) -->
+        <div class="top-row" id="editor-panel" style="display:none;">
           <div class="input-row">
             <input
               type="text"
@@ -516,7 +535,7 @@
         <div class="list-panel">
           <div class="list-header">
             <div class="list-header-title">Saved links</div>
-            <div class="list-header-sub">Drag cards to reorder</div>
+            <div class="list-header-sub">Tap + to add or manage</div>
           </div>
           <div id="links-list" class="links-list">
             <!-- link cards go here -->
@@ -526,8 +545,11 @@
     </main>
   </div>
 
+  <!-- Floating add/manage button -->
+  <button id="fab-btn" class="fab-btn" title="Add / Manage links">+</button>
+
   <script>
-    // === SUPABASE CONFIG (your actual project) ===
+    // === SUPABASE CONFIG ===
     const SUPABASE_URL = "https://upiobealvympxbypfmkc.supabase.co";
     const SUPABASE_ANON_KEY =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwaW9iZWFsdnltcHhieXBmbWtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNzYxNDIsImV4cCI6MjA3ODk1MjE0Mn0.mLvGyy-eMWr-ow2b2USMg7PXKq2EUfK1fyJEsdGThKw";
@@ -540,6 +562,7 @@
     let editingId = null;
     let linksData = [];
     let dragIndex = null;
+    let manageMode = false; // view mode by default
 
     // ELEMENTS
     const loginSection = document.getElementById("login-section");
@@ -554,6 +577,8 @@
     const headerRight = document.getElementById("header-right");
     const editStatus = document.getElementById("edit-status");
     const cancelEditBtn = document.getElementById("cancel-edit-btn");
+    const editorPanel = document.getElementById("editor-panel");
+    const fabBtn = document.getElementById("fab-btn");
 
     const pastelPalette = [
       { bg: "#fef3c7", border: "#fde68a" },
@@ -650,6 +675,24 @@
       }
     }
 
+    function updateManageUI() {
+      if (manageMode) {
+        editorPanel.style.display = "flex";
+        fabBtn.textContent = "✕";
+        fabBtn.title = "Done";
+      } else {
+        editorPanel.style.display = "none";
+        fabBtn.textContent = "+";
+        fabBtn.title = "Add / Manage links";
+        // reset editing state
+        editingId = null;
+        urlInput.value = "";
+        titleInput.value = "";
+        setEditingMode(false);
+      }
+      renderLinks(linksData); // re-render cards to show/hide edit/delete
+    }
+
     function showLogin() {
       loginSection.style.display = "block";
       appSection.style.display = "none";
@@ -664,7 +707,7 @@
     function renderLinks(list) {
       linksList.innerHTML = "";
       if (!list || !list.length) {
-        linksList.innerHTML = `<div class="empty">No links yet. Add one above with the + button.</div>`;
+        linksList.innerHTML = `<div class="empty">No links yet. Tap + to add one.</div>`;
         return;
       }
 
@@ -682,6 +725,16 @@
         card.style.background = pastel.bg;
         card.style.borderColor = pastel.border;
 
+        // Only show actions in manageMode
+        const actionsHtml = manageMode
+          ? `
+            <div class="actions">
+              <button class="small-btn edit-btn">Edit</button>
+              <button class="small-btn danger delete-btn">Delete</button>
+            </div>
+          `
+          : "";
+
         card.innerHTML = `
           <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="link-main">
             <div class="preview-box">
@@ -691,15 +744,12 @@
               <div class="meta-header">
                 <div class="title">${titleText}</div>
               </div>
-              <div class="url">${display}</div>
             </div>
           </a>
-          <div class="actions">
-            <button class="small-btn edit-btn">Edit</button>
-            <button class="small-btn danger delete-btn">Delete</button>
-          </div>
+          ${actionsHtml}
         `;
 
+        // Drag for reorder always active
         card.addEventListener("dragstart", (e) => {
           dragIndex = index;
           e.dataTransfer.effectAllowed = "move";
@@ -722,32 +772,35 @@
           renderLinks(linksData);
         });
 
-        const editBtn = card.querySelector(".edit-btn");
-        const deleteBtn = card.querySelector(".delete-btn");
+        // Only attach edit/delete in manage mode
+        if (manageMode) {
+          const editBtn = card.querySelector(".edit-btn");
+          const deleteBtn = card.querySelector(".delete-btn");
 
-        editBtn.addEventListener("click", () => {
-          editingId = link.id;
-          urlInput.value = link.url;
-          titleInput.value = link.title || "";
-          urlInput.focus();
-          setEditingMode(true);
-        });
+          editBtn.addEventListener("click", () => {
+            editingId = link.id;
+            urlInput.value = link.url;
+            titleInput.value = link.title || "";
+            urlInput.focus();
+            setEditingMode(true);
+          });
 
-        deleteBtn.addEventListener("click", async () => {
-          const ok = confirm("Delete this link?");
-          if (!ok) return;
-          const { error } = await db
-            .from("links")
-            .delete()
-            .eq("id", link.id)
-            .eq("code", currentCode);
-          if (error) {
-            console.error("Error deleting link:", error);
-            alert("Error deleting link: " + error.message);
-          } else {
-            fetchLinks();
-          }
-        });
+          deleteBtn.addEventListener("click", async () => {
+            const ok = confirm("Delete this link?");
+            if (!ok) return;
+            const { error } = await db
+              .from("links")
+              .delete()
+              .eq("id", link.id)
+              .eq("code", currentCode);
+            if (error) {
+              console.error("Error deleting link:", error);
+              alert("Error deleting link: " + error.message);
+            } else {
+              fetchLinks();
+            }
+          });
+        }
 
         linksList.appendChild(card);
       });
@@ -792,6 +845,7 @@
       renderLinks(linksData);
     }
 
+    // LOGIN
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
       let code = accessCodeInput.value.trim();
@@ -809,9 +863,9 @@
       setLoggedInUI(code);
       showApp();
       fetchLinks();
-      urlInput.focus();
     });
 
+    // ADD / UPDATE LINK
     addBtn.addEventListener("click", async () => {
       if (!currentCode) {
         alert("No active space code.");
@@ -885,6 +939,12 @@
       urlInput.value = "";
       titleInput.value = "";
       setEditingMode(false);
+    });
+
+    // FAB toggle: view <-> manage
+    fabBtn.addEventListener("click", () => {
+      manageMode = !manageMode;
+      updateManageUI();
     });
 
     setLoggedOutUI();
